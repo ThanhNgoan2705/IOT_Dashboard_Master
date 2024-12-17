@@ -34,8 +34,10 @@ const formatAttribute = (data: any) => {
 const DashboardPage = () => {
   const [loading, setLoading] = useState(false);
   const [latestData, setLatestData] = useState() as any;
-  const [attribute, setAttribute] = useState({});
-
+  const [attribute, setAttribute] = useState(() => {
+    const savedAttribute = localStorage.getItem("attribute");
+    return savedAttribute ? JSON.parse(savedAttribute) : {};
+  });
 
   const [socketUrl, setSocketUrl] = useState("");
   const [saveState, setSaveState] = useState(false);
@@ -44,7 +46,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
- 
+
     const socketUrl = `wss://${tbServer}/api/ws/plugins/telemetry?token=${token}`;
     setSocketUrl(socketUrl);
   }, []);
@@ -75,6 +77,32 @@ const DashboardPage = () => {
     onClose: () => { },
   }) as any;
 
+
+  const getAttribute = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      redirect("/login");
+    }
+    const url = `https://${tbServer}/api/plugins/telemetry/DEVICE/${deviceId}/values/attributes?keys=vong_1%2Cvong_2`;
+    const headers = {
+      accept: "application/json",
+      "X-Authorization": `Bearer ${token}`,
+    };
+    axios
+        .get(url, { headers })
+        .then((res) => {
+          const data = res.data;
+          const format = formatAttribute(data);
+          setAttribute(format);
+          localStorage.setItem("attribute", JSON.stringify(format));
+        })
+        .catch((error) => {
+          console.error({ error });
+        });
+  };
+  useEffect(() => {
+    getAttribute();
+  }, []);
   useEffect(()=>{
     const token = localStorage.getItem("token");
     if (!token) {
@@ -93,17 +121,13 @@ const DashboardPage = () => {
           active = activeItem.value;
         }
         console.log({ active });
-        
+
       })
       .catch((error) => {
         console.error({ error });
       })
       .finally(() => { });
   })
-
-
-
-
 const handleStart = async () => {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -130,11 +154,15 @@ const handleStart = async () => {
 }
   const now = Date.now();
   const handleAttributeChange = (key: string, value:  number) => {
-    setAttribute((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
+    setAttribute((prev: any) => {
+      const updatedAttributes = {
+        ...prev,
+        [key]: value,
+      };
+      localStorage.setItem("attribute", JSON.stringify(updatedAttributes));
+      return updatedAttributes;
+    });
+  }
   const onSave = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -161,7 +189,7 @@ const handleStart = async () => {
       });
   };
 
-  
+
 
   const [table, setTable] = useState() as any;
 
@@ -183,6 +211,8 @@ const handleStart = async () => {
   });
 
 
+  // @ts-ignore
+  // @ts-ignore
   return (
     <div className="flex gap-1">
       <div className="w-1/3 flex z-40">
@@ -192,7 +222,7 @@ const handleStart = async () => {
           data={latestData?.["round_number"][0]}
           isInteger={true}
           loading={loading}
-        
+
           unit="%"
         >
             <div className="flex flex-col gap-4">
@@ -230,7 +260,7 @@ const handleStart = async () => {
       </div>
       <div className="w-1/3 h-[300px] state-device bg-gray-100 rounded-lg flex flex-col justify-center items-center">
        <span className="text-2xl font-bold">State Device</span>
-       {active ? ( 
+       {active ? (
         <div className="w-[200px] h-[200px] rounded-full bg-green-500 text-center flex justify-center items-center">
         </div>
       ) : (
