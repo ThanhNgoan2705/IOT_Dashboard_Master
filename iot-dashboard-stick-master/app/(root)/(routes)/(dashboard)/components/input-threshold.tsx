@@ -9,7 +9,7 @@ interface InputThresholdProps {
   setEdit: (edit: { key: string; value: string | number }) => void;
   edit: { key: string; value: string | number };
   attribute: Record<string, any>;
-  onChange: (key: string, value: string | number) => void;
+  onChange: (key: string, value: number) => void;
 }
 
 const InputThreshold: React.FC<InputThresholdProps> = ({
@@ -20,7 +20,7 @@ const InputThreshold: React.FC<InputThresholdProps> = ({
   attribute,
   onChange,
 }) => {
-  const [localValue, setLocalValue] = useState<string | number | undefined>(
+  const [localValue, setLocalValue] = useState< number >(
     attribute?.[targetKey]
   );
 
@@ -37,7 +37,7 @@ const InputThreshold: React.FC<InputThresholdProps> = ({
         className="w-[200px] rounded-full ms-2"
         type="number"
         onChange={(e) => {
-          const value = e.target.value;
+          const value = parseInt(e.target.value);
           setLocalValue(value); // Cập nhật giá trị cục bộ
           onChange(targetKey, value); // Gửi giá trị thay đổi về parent
         }}

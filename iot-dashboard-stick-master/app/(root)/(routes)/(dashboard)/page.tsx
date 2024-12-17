@@ -129,7 +129,7 @@ const handleStart = async () => {
     .finally(() => { });
 }
   const now = Date.now();
-  const handleAttributeChange = (key: string, value: string | number) => {
+  const handleAttributeChange = (key: string, value:  number) => {
     setAttribute((prev) => ({
       ...prev,
       [key]: value,
