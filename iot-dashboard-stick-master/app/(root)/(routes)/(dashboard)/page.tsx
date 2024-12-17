@@ -35,8 +35,10 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(false);
   const [latestData, setLatestData] = useState() as any;
   const [attribute, setAttribute] = useState(() => {
-    const savedAttribute = localStorage.getItem("attribute");
-    return savedAttribute ? JSON.parse(savedAttribute) : {};
+    if (typeof window !== "undefined") {
+      const savedAttribute = localStorage.getItem("attribute");
+      return savedAttribute ? JSON.parse(savedAttribute) : {};
+    }
   });
 
   const [socketUrl, setSocketUrl] = useState("");
